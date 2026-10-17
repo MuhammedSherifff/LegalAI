@@ -18,7 +18,7 @@ import numpy as np
 from rank_bm25 import BM25Okapi
 
 from . import config
-from .embeddings import get_embedder
+from .embeddings import available_embedders, get_embedder, get_embedder_for_collection
 
 AR_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 _TOKEN_RE = re.compile(r"[\u0600-\u06FF]+|[0-9]+")
@@ -27,10 +27,7 @@ _TOKEN_RE = re.compile(r"[\u0600-\u06FF]+|[0-9]+")
 def tokenize(text: str) -> list[str]:
     """Arabic word + digit tokens. Arabic-Indic digits become ASCII so
     '١٦٣' and '163' match either way. Shared by ingest and query side."""
-    return [
-        t if t.isdigit() else t
-        for t in _TOKEN_RE.findall(text.translate(AR_DIGITS))
-    ]
+    return _TOKEN_RE.findall(text.translate(AR_DIGITS))
 
 
 def load_records() -> list[dict]:
@@ -99,7 +96,7 @@ def build_bm25(records: list[dict]) -> None:
 def check(query: str) -> None:
     client = chromadb.PersistentClient(path=str(config.CHROMA_PATH))
     collection = client.get_collection(config.COLLECTION_NAME)
-    embedder = get_embedder()
+    embedder = get_embedder_for_collection(collection)
     res = collection.query(
         query_embeddings=[embedder.embed_query(query).tolist()],
         n_results=5,
@@ -131,7 +128,7 @@ def check(query: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build Chroma + BM25 indices")
-    ap.add_argument("--embedder", default=None, help="e5-small | bgem3")
+    ap.add_argument("--embedder", default=None, help=" | ".join(available_embedders()))
     ap.add_argument("--check", default=None, metavar="QUERY", help="run sample query against built indices")
     args = ap.parse_args()
 

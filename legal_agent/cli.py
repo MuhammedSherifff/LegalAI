@@ -21,9 +21,11 @@ _B = "\033[1m"; _UNVERIFIED = "\033[93m"; _R = "\033[0m"
 
 def run(question: str) -> None:
     hits = retrieval.hybrid_search(question, k=5)
-    evidence = retrieval.get_article_by_number(question.split()[-1]) if _looks_exact(question) else None
-    if evidence:
-        hits = [evidence] + [h for h in hits if h.id != evidence.id][:4]
+    cited_in_question = citations.extract_citations(question)
+    if len(cited_in_question) == 1:
+        exact = retrieval.get_article_by_number(cited_in_question.pop())
+        if exact:
+            hits = [exact] + [h for h in hits if h.id != exact.id][:4]
     print(f"[retrieval] {len(hits)} articles: {', '.join('م' + h.article_number for h in hits)}")
 
     answer_text = nodes.answer(question, hits)
@@ -35,17 +37,16 @@ def run(question: str) -> None:
         print(f"{_UNVERIFIED}\n⚠ استشهد بنصوص خارج الأدلة المعروضة: {', '.join(sorted(bad))}{_R}")
         print(DISCLAIMER)
         return
-    print(f"\n{_B}المصادر:{_R}")
-    for h in hits:
-        if h.article_number in answer_text or True:
+    cited = citations.extract_citations(answer_text)
+    sources = [h for h in hits if h.article_number in cited]
+    if sources:
+        print(f"\n{_B}المصادر:{_R}")
+        for h in sources:
             status = {"in_force": "ساري", "repealed": "ملغى"}.get(h.legal_status, h.legal_status)
             print(f"  المادة {h.article_number} [{status}] — صفحة {h.page_start} — {h.parent_titles}")
+    else:
+        print("\n(لم يستشهد النموذج بأي مادة من الأدلة المعروضة)")
     print(DISCLAIMER)
-
-
-def _looks_exact(question: str) -> bool:
-    flows = {"ما", "نص", "القول", "ما هي", "المادة"}
-    return "المادة" in question and len(question.split()) <= 6
 
 
 def main() -> None:
@@ -62,7 +63,7 @@ def main() -> None:
         if not question or question.lower() in {"exit", "quit", "خروج"}:
             break
         run(question)
-    print("ودعً")
+    print("وداعًا")
 
 
 if __name__ == "__main__":

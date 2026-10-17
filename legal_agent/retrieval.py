@@ -7,13 +7,14 @@ from both. Agents consume tools.py, which calls hybrid_search.
 
 from __future__ import annotations
 
+import functools
 import pickle
 from dataclasses import dataclass
 
 import chromadb
 
 from . import config
-from .embeddings import get_embedder
+from .embeddings import get_embedder_for_collection
 from .ingest import tokenize
 
 
@@ -37,8 +38,9 @@ def _collection() -> chromadb.Collection:
 
 
 def vector_search(query: str, k: int = 5) -> list[Hit]:
-    emb = get_embedder().embed_query(query).tolist()
-    res = _collection().query(query_embeddings=[emb], n_results=k)
+    coll = _collection()
+    emb = get_embedder_for_collection(coll).embed_query(query).tolist()
+    res = coll.query(query_embeddings=[emb], n_results=k)
     return [
         Hit(
             id=rid,
@@ -57,9 +59,15 @@ def vector_search(query: str, k: int = 5) -> list[Hit]:
     ]
 
 
-def sparse_search(query: str, k: int = 5) -> list[Hit]:
+@functools.lru_cache(maxsize=1)
+def _bm25_payload() -> dict:
+    # shortcut: cached for process lifetime — restart after re-running ingest
     with open(config.BM25_PATH, "rb") as f:
-        payload = pickle.load(f)
+        return pickle.load(f)
+
+
+def sparse_search(query: str, k: int = 5) -> list[Hit]:
+    payload = _bm25_payload()
     scores = payload["bm25"].get_scores(tokenize(query))
     ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]
     return [

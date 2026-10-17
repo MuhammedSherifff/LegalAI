@@ -2,11 +2,13 @@ import json
 import re
 import sys
 from collections import Counter
+from pathlib import Path
 
 import pymupdf
 
-PDF_PATH = "/home/muhamed/Desktop/Spamming/LegalAI/CivialLaw.pdf"
-OUT_PATH = "/home/muhamed/Desktop/Spamming/LegalAI/civil_law_records.json"
+ROOT = Path(__file__).resolve().parent.parent
+PDF_PATH = ROOT / "data" / "CivilLaw.pdf"
+OUT_PATH = ROOT / "data" / "civil_law_records.json"
 
 LAW_CODE = "civ_1948"
 LAW_ENACT = "civ_1948_enact"
@@ -502,9 +504,9 @@ def main():
 
     laws = [
         {"law_id": LAW_CODE, "title_ar": "القانون المدني المصري", "doc_type": "civil_code",
-         "promulgated": "1948-07-16", "effective": "1949-10-15", "source_pdf": "CivialLaw.pdf"},
+         "promulgated": "1948-07-16", "effective": "1949-10-15", "source_pdf": "CivilLaw.pdf"},
         {"law_id": LAW_ENACT, "title_ar": "قانون الإصدار", "doc_type": "enactment_law",
-         "promulgated": "1948-07-16", "effective": "1949-10-15", "source_pdf": "CivialLaw.pdf"},
+         "promulgated": "1948-07-16", "effective": "1949-10-15", "source_pdf": "CivilLaw.pdf"},
     ]
     data = {"laws": laws, "records": records}
     with open(OUT_PATH, "w", encoding="utf-8") as f:

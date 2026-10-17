@@ -10,11 +10,14 @@ import functools
 import json
 import time
 import urllib.request
+from typing import TYPE_CHECKING
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from . import config
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
 class BaseEmbedder:
@@ -28,14 +31,22 @@ class BaseEmbedder:
 
     def _st(self) -> SentenceTransformer:
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
+
+            device = config.DEVICE
+            if device.startswith("cuda"):
+                import torch
+
+                if not torch.cuda.is_available():
+                    device = "cpu"
             try:
-                self._model = SentenceTransformer(self.model_id, device=config.DEVICE)
+                self._model = SentenceTransformer(self.model_id, device=device)
             except Exception:
                 # already-downloaded model in the HF cache must never re-download
                 self._model = SentenceTransformer(
-                    self.model_id, device=config.DEVICE, local_files_only=True
+                    self.model_id, device=device, local_files_only=True
                 )
-            if config.DEVICE.startswith("cuda"):
+            if device.startswith("cuda"):
                 self._model.half()
         return self._model
 
@@ -177,3 +188,22 @@ def get_embedder(name: str | None = None) -> BaseEmbedder:
         raise ValueError(
             f"unknown embedder {name!r}, available: {sorted(_EMBEDDERS)}"
         ) from None
+
+
+def available_embedders() -> list[str]:
+    return sorted(_EMBEDDERS)
+
+
+def get_embedder_for_collection(collection) -> BaseEmbedder:
+    """The active embedder, refusing to query an index built by another one.
+
+    Query vectors are meaningless against a different model's space, so a
+    silent mismatch would degrade search without any error."""
+    emb = get_embedder()
+    stored = (collection.metadata or {}).get("embedder")
+    if stored and stored != emb.name:
+        raise RuntimeError(
+            f"index was built with {stored!r} but active embedder is {emb.name!r}; "
+            f"set LEGALAI_EMBEDDER={stored} or re-run ingest"
+        )
+    return emb
