@@ -2,20 +2,19 @@
 
 The only package. Agentic RAG over the Egyptian Civil Code.
 
-## Module map (planned)
+## Module map
 
 | Module | Role |
 |---|---|
-| `config.py` | env keys, model names, constants |
-| `embeddings.py` | embedder abstraction: e5-small / bge-m3, `get_embedder()` |
-| `llm.py` | provider adapter: Groq / Gemini / OpenRouter via one init |
-| `ingest.py` | JSON → Chroma + BM25 build script |
-| `retrieval.py` | hybrid search, filters, `get_article_by_number` |
-| `web_search.py` | Tavily tool |
-| `nodes.py` | planner, evidence_gate, rewrite, answerer (graph nodes) |
-| `graph.py` | LangGraph `StateGraph` wiring |
-| `citations.py` | post-answer citation verification (code, not LLM) |
-| `eval.py` | golden 20-question eval: retrieval hits, no fabricated citations |
-| `cli.py` | `python -m legal_agent` REPL, pretty-printed answers |
+| `config.py` | paths, index names, active model/embedder picks (env-overridable) |
+| `embeddings.py` | embedder abstraction (e5-small / bge-m3 / qwen3-0.6b / gemini-2), index-consistency guard |
+| `llm.py` | provider adapter: Groq / Gemini / OpenRouter via one `get_llm()` |
+| `ingest.py` | JSON → Chroma + BM25 build script (`python -m legal_agent.ingest`) |
+| `retrieval.py` | hybrid search (RRF), exact article lookup, repealed fallback |
+| `tools.py` | the 3 agent-facing tools: retrieve / exact fetch / web search |
+| `nodes.py` | prompt layer — the one file where answer behavior gets tuned |
+| `graph.py` | LangGraph agent loop + citation gate (`graph.ask(question)`) |
+| `citations.py` | regex citation extraction + evidence-set enforcement |
+| `cli.py` / `__main__.py` | terminal REPL (`python -m legal_agent`) |
 
-Modules appear here as phases progress — see `../dev.md` for status and design decisions.
+Status, decisions and known limits live in [`../dev.md`](../dev.md).

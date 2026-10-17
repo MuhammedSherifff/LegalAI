@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "notes": "expected = article numbers whose text actually answers the question, verified against data/civil_law_records.json (civ_1948). Article numbers are strings.",
+  "items": [
+    {"question": "ما هو التعويض عن الفعل الضار؟", "expected": ["163"]},
+    {"question": "هل يجوز نقض العقد أو تعديله؟", "expected": ["147"]},
+    {"question": "ما معنى تنفيذ العقد وفقا لما يوجبه حسن النية؟", "expected": ["148"]},
+    {"question": "ما حكم الشروط التعسفية في عقود الإذعان؟", "expected": ["149"]},
+    {"question": "هل يجوز الانحراف عن عبارات العقد الواضحة؟", "expected": ["150"]},
+    {"question": "كيف يفسر الشك في العقد؟", "expected": ["151"]},
+    {"question": "ما هي مدة التقادم المسقط العادي؟", "expected": ["374"]},
+    {"question": "ما الحقوق التي تتقادم بخمس سنوات؟", "expected": ["375"]},
+    {"question": "ما هو عقد البيع؟", "expected": ["418"]},
+    {"question": "متى تنتقل الملكية بالعقد؟", "expected": ["932"]},
+    {"question": "كيف ينعقد العقد؟", "expected": ["89"]},
+    {"question": "ما هو الغلط الجوهري الذي يبطل العقد؟", "expected": ["120", "121"]},
+    {"question": "ما هو عقد الإيجار؟", "expected": ["558"]},
+    {"question": "هل يجوز تحديد التعويض مقدما في العقد؟", "expected": ["223"]},
+    {"question": "ما حكم الفوائد عند تأخر المدين في دفع مبلغ من النقود؟", "expected": ["226"]},
+    {"question": "هل يجوز الاتفاق على إعفاء المدين من المسؤولية؟", "expected": ["217"]},
+    {"question": "ما حكم انتقال ملكية العين المؤجرة إلى شخص آخر؟", "expected": ["604"]}
+  ]
+}

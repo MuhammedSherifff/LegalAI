@@ -8,6 +8,7 @@ from both. Agents consume tools.py, which calls hybrid_search.
 from __future__ import annotations
 
 import functools
+import json
 import pickle
 from dataclasses import dataclass
 
@@ -113,6 +114,19 @@ def hybrid_search(query: str, k: int = 5, k_rrf: int = 60) -> list[Hit]:
     ]
 
 
+@functools.lru_cache(maxsize=1)
+def _placeholders() -> dict[str, dict]:
+    """Article number -> record for repealed/unknown articles. These carry no
+    text and are absent from the index, but exact lookups should still say so."""
+    with open(config.DATA_PATH, encoding="utf-8") as f:
+        data = json.load(f)
+    return {
+        r["article_number"]: r
+        for r in data["records"]
+        if not r["text"] and r["law_id"] == "civ_1948"
+    }
+
+
 def get_article_by_number(number: str) -> Hit | None:
     """Exact metadata lookup '163' or '٦٣٠'-style input, digits normalized."""
     num = str(number).translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
@@ -121,7 +135,20 @@ def get_article_by_number(number: str) -> Hit | None:
         include=["documents", "metadatas"],
     )
     if not res["ids"]:
-        return None
+        r = _placeholders().get(num)
+        if r is None:
+            return None
+        return Hit(
+            id=r["id"],
+            article_number=num,
+            legal_status=r["legal_status"],
+            title="",
+            parent_titles="",
+            page_start=r.get("source_page_start") or 0,
+            page_end=r.get("source_page_end") or 0,
+            text=r.get("source_note") or "لا يوجد نص منشور لهذه المادة",
+            score=1.0,
+        )
     m = res["metadatas"][0]
     return Hit(
         id=res["ids"][0],

@@ -12,6 +12,8 @@ BM25_PATH = PROJECT_ROOT / "indices" / "bm25.pkl"
 COLLECTION_NAME = "civil_code_1948"
 
 # Active embedder, overridable via env or --embedder flag on ingest.
+# Swap only together with a re-ingest: query vectors must come from the
+# same model that built the index (guarded in embeddings.get_embedder_for_collection).
 EMBEDDER = os.getenv("LEGALAI_EMBEDDER", "qwen3-0.6b")
 # Embedding compute device + encode batch. fp16 GPU fits <4GB cards.
 DEVICE = os.getenv("LEGALAI_DEVICE", "cuda")
