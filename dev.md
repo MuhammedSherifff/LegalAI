@@ -26,8 +26,16 @@ Working agentic RAG (P1–P4 done):
 - **BM25 payload cached** for process lifetime — restart after re-ingest.
 - **PDF rename**: `CivialLaw.pdf` -> `CivilLaw.pdf` (typo); `source_pdf` in the
   JSON updated to match.
-- **Tool-probe model**: `groq:qwen/qwen3.8-27b` verified live 2026-10-18
-  (answers, tool calls, graph loop all work).
+- **Chat model**: `gemini:gemini-3.5-flash-lite` is the config default
+  (probed 2026-10-18: exact article 4s, semantic multi-article 19s/12 refs,
+  web/labor 6s; no looping with the round cap in place).
+  `LEGALAI_LLM=groq:qwen/qwen3.8-27b` is the verified fallback — one malformed
+  tool-call 400 (`tool_use_failed`, parameter `url` instead of `query`) was
+  observed on it, which is why the retry guard exists.
+- **Provider guards (graph.py)**: malformed tool calls retried twice with a
+  corrective note; tool rounds capped at 4, then `finalize` forces one
+  no-tools answer call; the CLI catches graph errors so the REPL survives
+  provider failures.
 
 ## Known limits / deferred
 

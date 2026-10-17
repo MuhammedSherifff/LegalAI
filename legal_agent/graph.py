@@ -4,6 +4,10 @@ agent -> (tool calls) -> tools -> agent ... -> verify -> retry or END.
 On corpus-grounded answers the model may only cite articles that appeared in
 tool results; violations are bounced back once, then surfaced to the caller
 in `bad_citations`. Web-only answers pass unverified (see verify()).
+
+Two provider guards: malformed tool calls are retried with a corrective note
+(Groq rejects them with tool_use_failed), and a tool-round cap forces a final
+answer without tools (Gemini 3.5 Flash-Lite otherwise loops on tool calls).
 """
 
 from __future__ import annotations
@@ -21,6 +25,8 @@ from .llm import get_llm
 from .tools import ALL_TOOLS
 
 MAX_RETRIES = 2
+MAX_TOOL_CALL_RETRIES = 2
+MAX_TOOL_ROUNDS = 4
 _EVIDENCE_TOOLS = {"retrieve_civil_law", "get_article_by_number"}
 
 
@@ -29,13 +35,21 @@ class State(TypedDict, total=False):
     messages: Annotated[list, operator.add]
     evidence: Annotated[list[dict], operator.add]
     attempts: int
+    tool_rounds: int
     answer: str
     bad_citations: set[str]
 
 
 def agent(state: State) -> dict:
     llm = get_llm().bind_tools(ALL_TOOLS)
-    return {"messages": [llm.invoke(state["messages"])]}
+    messages = list(state["messages"])
+    for attempt in range(MAX_TOOL_CALL_RETRIES + 1):
+        try:
+            return {"messages": [llm.invoke(messages)]}
+        except Exception as e:  # noqa: BLE001 — checked below before retrying
+            if "tool" not in str(e).lower() or attempt == MAX_TOOL_CALL_RETRIES:
+                raise
+            messages.append(HumanMessage(nodes.tool_call_correction()))
 
 
 def _evidence_from(tool_name: str, content: str) -> list[dict]:
@@ -62,7 +76,14 @@ def call_tools(state: State) -> dict:
                 content = json.dumps({"error": f"{type(e).__name__}: {e}"}, ensure_ascii=False)
         messages.append(ToolMessage(content=content, tool_call_id=call["id"]))
         evidence.extend(_evidence_from(call["name"], content))
-    return {"messages": messages, "evidence": evidence}
+    return {"messages": messages, "evidence": evidence,
+            "tool_rounds": state.get("tool_rounds", 0) + 1}
+
+
+def finalize(state: State) -> dict:
+    """Cap reached: one answer-producing call with tools removed."""
+    messages = list(state["messages"]) + [HumanMessage(nodes.FORCE_ANSWER)]
+    return {"messages": [get_llm().invoke(messages)]}
 
 
 def verify(state: State) -> dict:
@@ -84,7 +105,11 @@ def verify(state: State) -> dict:
 
 def _route_after_agent(state: State) -> str:
     last = state["messages"][-1]
-    return "tools" if isinstance(last, AIMessage) and last.tool_calls else "verify"
+    if not (isinstance(last, AIMessage) and last.tool_calls):
+        return "verify"
+    if state.get("tool_rounds", 0) >= MAX_TOOL_ROUNDS:
+        return "finalize"
+    return "tools"
 
 
 def _route_after_verify(state: State) -> str:
@@ -96,10 +121,16 @@ def _compiled():
     g = StateGraph(State)
     g.add_node("agent", agent)
     g.add_node("tools", call_tools)
+    g.add_node("finalize", finalize)
     g.add_node("verify", verify)
     g.add_edge(START, "agent")
-    g.add_conditional_edges("agent", _route_after_agent, {"tools": "tools", "verify": "verify"})
+    g.add_conditional_edges(
+        "agent",
+        _route_after_agent,
+        {"tools": "tools", "verify": "verify", "finalize": "finalize"},
+    )
     g.add_edge("tools", "agent")
+    g.add_edge("finalize", "verify")
     g.add_conditional_edges("verify", _route_after_verify, {"agent": "agent", "end": END})
     return g.compile()
 
@@ -112,6 +143,7 @@ def ask(question: str) -> State:
             "messages": [SystemMessage(nodes.SYSTEM), HumanMessage(question)],
             "evidence": [],
             "attempts": 0,
+            "tool_rounds": 0,
         },
         config={"recursion_limit": 30},
     )

@@ -21,7 +21,11 @@ _STATUS_AR = {"in_force": "ساري", "repealed": "ملغى", "unknown": "غير
 
 
 def run(question: str) -> None:
-    state = graph.ask(question)
+    try:
+        state = graph.ask(question)
+    except Exception as e:  # noqa: BLE001 — provider errors must not kill the REPL
+        print(f"{_UNVERIFIED}\n⚠ تعذر تنفيذ الطلب: {type(e).__name__}: {str(e)[:200]}{_R}")
+        return
     evidence = state.get("evidence", [])
     seen: list[str] = []
     for e in evidence:

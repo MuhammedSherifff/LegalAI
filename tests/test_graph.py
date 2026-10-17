@@ -1,17 +1,20 @@
 import json
 
+import pytest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.tools import tool
+from pydantic import Field
 
 from legal_agent import graph
 
 
 class ScriptedModel(BaseChatModel):
-    """Returns canned AIMessages in order; ignores bind_tools."""
+    """Returns canned AIMessages in order; optional queued raises first."""
 
     responses: list
+    errors: list = Field(default_factory=list)
 
     @property
     def _llm_type(self) -> str:
@@ -21,6 +24,8 @@ class ScriptedModel(BaseChatModel):
         return self
 
     def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        if self.errors:
+            raise self.errors.pop(0)
         return ChatResult(generations=[ChatGeneration(message=self.responses.pop(0))])
 
 
@@ -44,8 +49,8 @@ def retrieve_civil_law(query: str) -> str:
     )
 
 
-def scripted(monkeypatch, responses, tools=()):
-    model = ScriptedModel(responses=list(responses))
+def scripted(monkeypatch, responses, tools=(), errors=()):
+    model = ScriptedModel(responses=list(responses), errors=list(errors))
     monkeypatch.setattr(graph, "get_llm", lambda: model)
     monkeypatch.setattr(graph, "ALL_TOOLS", list(tools))
     return model
@@ -113,3 +118,40 @@ def test_web_only_answer_skips_gate(monkeypatch):
     state = graph.ask("ما عقوبة السرقة؟")
     assert state["bad_citations"] == set()
     assert state["attempts"] == 0
+
+
+def _tool_call(i: int) -> AIMessage:
+    return AIMessage(
+        content="",
+        tool_calls=[
+            {"name": "retrieve_civil_law", "args": {"query": f"س{i}"}, "id": f"c{i}"}
+        ],
+    )
+
+
+def test_tool_round_cap_forces_final_answer(monkeypatch):
+    scripted(
+        monkeypatch,
+        [_tool_call(i) for i in range(graph.MAX_TOOL_ROUNDS + 1)]
+        + [AIMessage(content="إجابة نهائية دون استشهاد.")],
+        tools=[retrieve_civil_law],
+    )
+    state = graph.ask("سؤال يغري بالبحث المتكرر")
+    assert state["tool_rounds"] == graph.MAX_TOOL_ROUNDS
+    assert state["answer"] == "إجابة نهائية دون استشهاد."
+
+
+def test_malformed_tool_call_retried(monkeypatch):
+    scripted(
+        monkeypatch,
+        [AIMessage(content="الإجابة بعد إعادة المحاولة.")],
+        errors=[ValueError("tool call validation failed: missing properties: 'query'")],
+    )
+    state = graph.ask("سؤال")
+    assert state["answer"] == "الإجابة بعد إعادة المحاولة."
+
+
+def test_non_tool_error_propagates(monkeypatch):
+    scripted(monkeypatch, [], errors=[RuntimeError("invalid api key")])
+    with pytest.raises(RuntimeError, match="invalid api key"):
+        graph.ask("سؤال")

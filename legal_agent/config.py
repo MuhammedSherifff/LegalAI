@@ -21,5 +21,7 @@ BATCH_SIZE = int(os.getenv("LEGALAI_BATCH", "16"))
 # Gemini embedding throttle: min seconds between API calls (free-tier RPM guard).
 GEMINI_MIN_INTERVAL = float(os.getenv("LEGALAI_GEMINI_INTERVAL", "0.2"))
 
-# Chat model: "provider:model". Default = only model passing the full tool probe.
-LLM = os.getenv("LEGALAI_LLM", "groq:qwen/qwen3.8-27b")
+# Chat model: "provider:model". Gemini 3.5 Flash-Lite is active; it needs the
+# tool-round cap + malformed-call retry in graph.py. groq:qwen/qwen3.8-27b is
+# the verified fallback: LEGALAI_LLM=groq:qwen/qwen3.8-27b
+LLM = os.getenv("LEGALAI_LLM", "gemini:gemini-3.5-flash-lite")
