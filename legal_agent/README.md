@@ -12,8 +12,9 @@ The only package. Agentic RAG over the Egyptian Civil Code.
 | `ingest.py` | JSON → Chroma + BM25 build script (`python -m legal_agent.ingest`) |
 | `retrieval.py` | hybrid search (RRF), exact article lookup, repealed fallback |
 | `tools.py` | the 3 agent-facing tools: retrieve / exact fetch / web search |
-| `nodes.py` | prompt layer — the one file where answer behavior gets tuned |
-| `graph.py` | LangGraph agent loop + citation gate (`graph.ask(question)`) |
+| `prompts.py` | prompt layer — the one file where answer behavior gets tuned |
+| `agent.py` | LangGraph agent loop + citation gate (`agent.ask(question, history)`) |
+| `api.py` | FastAPI wrapper (`POST /ask` with history) + serves `static/index.html` |
 | `citations.py` | regex citation extraction + evidence-set enforcement |
 | `cli.py` / `__main__.py` | terminal REPL (`python -m legal_agent`) |
 

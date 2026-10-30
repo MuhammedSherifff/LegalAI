@@ -23,7 +23,7 @@ from langchain_core.messages import AIMessage
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from legal_agent import citations, config, graph 
+from legal_agent import citations, config, agent 
 
 
 def load_items(path: str) -> list[dict]:
@@ -45,7 +45,7 @@ def run_one(idx: int, item: dict) -> dict:
     error = None
     for attempt in range(3):
         try:
-            state = graph.ask(item["question"])
+            state = agent.ask(item["question"])
             error = None
             break
         except Exception as e:  # noqa: BLE001 - one bad item must not stop the run

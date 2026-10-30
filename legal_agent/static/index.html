@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalAI — المساعد القانوني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1420;
+    --surface: #161d2c;
+    --surface-2: #1d2637;
+    --border: #2a3548;
+    --text: #e8e4da;
+    --muted: #8b93a3;
+    --gold: #d4a556;
+    --gold-soft: rgba(212, 165, 86, 0.14);
+    --green: #4caf7d;
+    --red: #d46a5e;
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1a2436 0%, var(--bg) 60%);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+  }
+  .app { width: 100%; max-width: 780px; display: flex; flex-direction: column; height: 100%; }
+
+  header {
+    padding: 20px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--gold), #a87c33);
+    display: grid; place-items: center; font-size: 22px;
+    box-shadow: 0 4px 18px rgba(212, 165, 86, 0.25);
+  }
+  header h1 { font-size: 18px; font-weight: 700; }
+  header p { font-size: 12.5px; color: var(--muted); }
+
+  #chat { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  .msg { max-width: 86%; animation: rise .25s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #2a4a7a, #1f3a63);
+    border-radius: var(--radius) var(--radius) 4px var(--radius);
+    padding: 12px 16px;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    padding: 14px 18px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+  }
+  .msg.bot.error { border-color: var(--red); color: #f0c5c0; }
+  .cite {
+    background: var(--gold-soft); color: var(--gold);
+    border-radius: 6px; padding: 1px 7px; font-weight: 500; white-space: nowrap;
+  }
+
+  .meta { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 8px; max-width: 86%; width: 100%; }
+  .src {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px; font-size: 12.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .src b { color: var(--gold); }
+  .badge { border-radius: 99px; padding: 1px 9px; font-size: 11px; }
+  .badge.in_force { background: rgba(76,175,125,.15); color: var(--green); }
+  .badge.repealed { background: rgba(212,106,94,.15); color: var(--red); }
+  .badge.unknown  { background: rgba(139,147,163,.15); color: var(--muted); }
+  .badge.web { background: rgba(90,140,220,.15); color: #7fa7e8; }
+  .src .page { color: var(--muted); }
+
+  .warn {
+    align-self: stretch; border: 1px solid rgba(212,165,86,.4);
+    background: var(--gold-soft); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; color: #e8cf9e;
+  }
+
+  .thinking { align-self: flex-start; color: var(--muted); font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  .dots i {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--gold); margin-inline-start: 4px; animation: blink 1.2s infinite;
+  }
+  .dots i:nth-child(2) { animation-delay: .2s; } .dots i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  /* empty state */
+  #empty { margin: auto; text-align: center; padding: 40px 20px; }
+  #empty .logo { width: 64px; height: 64px; font-size: 32px; margin: 0 auto 18px; }
+  #empty h2 { font-size: 20px; margin-bottom: 8px; }
+  #empty p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .chip {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 99px; padding: 9px 18px; font-size: 13.5px; cursor: pointer;
+    font-family: inherit; transition: border-color .15s, background .15s;
+  }
+  .chip:hover { border-color: var(--gold); background: var(--gold-soft); }
+
+  footer.composer {
+    padding: 14px 24px 20px; border-top: 1px solid var(--border);
+    background: rgba(14, 20, 32, .85); backdrop-filter: blur(8px);
+  }
+  .row { display: flex; gap: 10px; align-items: flex-end; }
+  textarea {
+    flex: 1; resize: none; background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; font: inherit; font-size: 14.5px; line-height: 1.6;
+    max-height: 130px; outline: none; transition: border-color .15s;
+  }
+  textarea:focus { border-color: var(--gold); }
+  textarea::placeholder { color: var(--muted); }
+  #send {
+    background: linear-gradient(135deg, var(--gold), #a87c33); border: none;
+    color: #14100a; width: 46px; height: 46px; border-radius: 13px;
+    font-size: 19px; cursor: pointer; flex-shrink: 0;
+    transition: transform .12s, box-shadow .15s;
+  }
+  #send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(212,165,86,.3); }
+  #send:disabled { opacity: .4; cursor: default; }
+  .disclaimer { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">⚖</div>
+    <div>
+      <h1>المساعد القانوني</h1>
+      <p>أسئلتك عن القانون المدني المصري — بإجابات موثقة على نص المادة</p>
+    </div>
+  </header>
+
+  <div id="chat">
+    <div id="empty">
+      <div class="logo">⚖</div>
+      <h2>اسأل عن القانون المدني المصري</h2>
+      <p>إجابة موثقة بنص المادة ورقمها وحالتها القانونية</p>
+      <div class="chips">
+        <button class="chip" onclick="askFromChip(this)">ما نص المادة 163؟</button>
+        <button class="chip" onclick="askFromChip(this)">ما أحكام الشرط الجزائي؟</button>
+        <button class="chip" onclick="askFromChip(this)">ما شروط صحة عقد البيع؟</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="composer">
+    <div class="row">
+      <textarea id="input" rows="1" placeholder="اكتب سؤالك القانوني…"></textarea>
+      <button id="send" title="إرسال">↑</button>
+    </div>
+    <div class="disclaimer">⚠ هذه معلومات عامة وليست استشارة قانونية</div>
+  </footer>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+let history = [];      // [{role, content}] — trimmed server-side to the last 20
+let busy = false;
+
+const escapeHTML = s => s.replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// (المادة 123) → gold chip; safe because the text is escaped first
+const withCitations = s => escapeHTML(s)
+  .replace(/المادة\s*\d+/g, m => `<span class="cite">${m}</span>`);
+
+const statusBadge = s => ({
+  in_force: '<span class="badge in_force">ساري</span>',
+  repealed: '<span class="badge repealed">ملغى</span>',
+  unknown:  '<span class="badge unknown">غير مؤكدة</span>',
+}[s] || `<span class="badge unknown">${escapeHTML(s)}</span>`);
+
+function addUser(text) {
+  const d = document.createElement("div");
+  d.className = "msg user";
+  d.textContent = text;
+  chat.appendChild(d);
+}
+
+function addBot(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg bot" + (cls ? " " + cls : "");
+  d.innerHTML = withCitations(text);
+  chat.appendChild(d);
+  return d;
+}
+
+function addSources(sources, webUsed) {
+  if (!sources.length && !webUsed) return;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  if (webUsed) meta.innerHTML = '<span class="badge web">مستند إلى بحث الويب</span>';
+  for (const s of sources) {
+    const card = document.createElement("div");
+    card.className = "src";
+    card.innerHTML = `<b>المادة ${escapeHTML(s.article)}</b> ${statusBadge(s.status)}` +
+      (s.section ? `<span class="page">${escapeHTML(s.section)}</span>` : "") +
+      (s.page ? `<span class="page">— ص ${escapeHTML(String(s.page))}</span>` : "");
+    meta.appendChild(card);
+  }
+  chat.appendChild(meta);
+}
+
+function addWarn(bad) {
+  const d = document.createElement("div");
+  d.className = "warn";
+  d.textContent = "⚠ استشهد النموذج بنصوص خارج الأدلة المعروضة: " + bad.join("، ");
+  chat.appendChild(d);
+}
+
+function thinking() {
+  const d = document.createElement("div");
+  d.className = "thinking";
+  d.innerHTML = 'يبحث في نصوص القانون <span class="dots"><i></i><i></i><i></i></span>';
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+
+async function ask(question) {
+  if (busy || !question.trim()) return;
+  busy = true; sendBtn.disabled = true;
+  document.getElementById("empty")?.remove();
+  addUser(question.trim());
+  const wait = thinking();
+  try {
+    const r = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: question.trim(), history }),
+    });
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.detail || "خطأ غير متوقع");
+    addBot(body.answer);
+    addSources(body.sources, body.web_used);
+    if (body.bad_citations?.length) addWarn(body.bad_citations);
+    history.push({ role: "user", content: question.trim() },
+                  { role: "assistant", content: body.answer });
+  } catch (e) {
+    addBot("تعذر تنفيذ الطلب: " + (e.message || e), "error");
+  } finally {
+    wait.remove();
+    busy = false; sendBtn.disabled = false;
+    input.focus();
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
+
+function askFromChip(btn) { ask(btn.textContent); }
+
+sendBtn.addEventListener("click", () => { ask(input.value); input.value = ""; });
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    ask(input.value); input.value = "";
+  }
+});
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 130) + "px";
+});
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 Interactive REPL:    python -m legal_agent
 One-shot question:   python -m legal_agent "ما نص المادة 163؟"
 
-The agent (graph.py) decides which tools to call, answers from their results,
+The agent (agent.py) decides which tools to call, answers from their results,
 and a code-side gate verifies every cited article number.
 """
 
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 
-from . import citations, graph
+from . import citations, agent
 
 DISCLAIMER = "\n⚠ هذه معلومات عامة وليست استشارة قانونية."
 
@@ -22,7 +22,7 @@ _STATUS_AR = {"in_force": "ساري", "repealed": "ملغى", "unknown": "غير
 
 def run(question: str) -> None:
     try:
-        state = graph.ask(question)
+        state = agent.ask(question)
     except Exception as e:  # noqa: BLE001 — provider errors must not kill the REPL
         print(f"{_UNVERIFIED}\n⚠ تعذر تنفيذ الطلب: {type(e).__name__}: {str(e)[:200]}{_R}")
         return

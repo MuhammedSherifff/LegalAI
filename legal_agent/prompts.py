@@ -1,6 +1,6 @@
 """Prompt layer: the one file where answer behavior gets tuned.
 
-graph.py wires the state machine; everything the model reads before it
+agent.py wires the state machine; everything the model reads before it
 answers (rules, correction notes) is built here.
 """
 

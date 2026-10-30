@@ -20,7 +20,7 @@ from typing import Annotated, TypedDict
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, START, StateGraph
 
-from . import citations, nodes
+from . import citations, prompts
 from .llm import get_llm
 from .tools import ALL_TOOLS
 
@@ -49,7 +49,7 @@ def agent(state: State) -> dict:
         except Exception as e:  
             if "tool" not in str(e).lower() or attempt == MAX_TOOL_CALL_RETRIES:
                 raise
-            messages.append(HumanMessage(nodes.tool_call_correction()))
+            messages.append(HumanMessage(prompts.tool_call_correction()))
 
 
 def _evidence_from(tool_name: str, content: str) -> list[dict]:
@@ -82,7 +82,7 @@ def call_tools(state: State) -> dict:
 
 def finalize(state: State) -> dict:
     """Cap reached: one answer-producing call with tools removed."""
-    messages = list(state["messages"]) + [HumanMessage(nodes.FORCE_ANSWER)]
+    messages = list(state["messages"]) + [HumanMessage(prompts.FORCE_ANSWER)]
     return {"messages": [get_llm().invoke(messages)]}
 
 
@@ -97,7 +97,7 @@ def verify(state: State) -> dict:
     bad = citations.check(answer_text, numbers)
     if bad and state.get("attempts", 0) < MAX_RETRIES:
         return {
-            "messages": [HumanMessage(nodes.correction(bad))],
+            "messages": [HumanMessage(prompts.correction(bad))],
             "attempts": state.get("attempts", 0) + 1,
         }
     return {"answer": answer_text, "bad_citations": bad}
@@ -135,12 +135,21 @@ def _compiled():
     return g.compile()
 
 
-def ask(question: str) -> State:
-    """Run the agent to completion and return the final state."""
+def ask(question: str, history: list[dict] | None = None) -> State:
+    """Run the agent to completion and return the final state.
+
+    `history` carries prior turns of the same conversation, oldest first:
+    [{"role": "user" | "assistant", "content": str}, ...]. It is replayed
+    before the new question so follow-ups resolve context and pronouns.
+    """
+    prefix = [
+        HumanMessage(t["content"]) if t["role"] == "user" else AIMessage(t["content"])
+        for t in (history or [])
+    ]
     return _compiled().invoke(
         {
             "question": question,
-            "messages": [SystemMessage(nodes.SYSTEM), HumanMessage(question)],
+            "messages": [SystemMessage(prompts.SYSTEM), *prefix, HumanMessage(question)],
             "evidence": [],
             "attempts": 0,
             "tool_rounds": 0,

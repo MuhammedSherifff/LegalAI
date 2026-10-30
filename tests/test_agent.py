@@ -7,7 +7,7 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.tools import tool
 from pydantic import Field
 
-from legal_agent import graph
+from legal_agent import agent
 
 
 class ScriptedModel(BaseChatModel):
@@ -51,8 +51,8 @@ def retrieve_civil_law(query: str) -> str:
 
 def scripted(monkeypatch, responses, tools=(), errors=()):
     model = ScriptedModel(responses=list(responses), errors=list(errors))
-    monkeypatch.setattr(graph, "get_llm", lambda: model)
-    monkeypatch.setattr(graph, "ALL_TOOLS", list(tools))
+    monkeypatch.setattr(agent, "get_llm", lambda: model)
+    monkeypatch.setattr(agent, "ALL_TOOLS", list(tools))
     return model
 
 
@@ -70,7 +70,7 @@ def test_tool_loop_and_grounded_answer(monkeypatch):
         ],
         tools=[retrieve_civil_law],
     )
-    state = graph.ask("ما حكم من سبب ضررا للغير؟")
+    state = agent.ask("ما حكم من سبب ضررا للغير؟")
     assert "163" in state["answer"]
     assert {e["article"] for e in state["evidence"]} == {"163"}
     assert state["bad_citations"] == set()
@@ -92,7 +92,7 @@ def test_fabricated_citation_triggers_retry(monkeypatch):
         ],
         tools=[retrieve_civil_law],
     )
-    state = graph.ask("سؤال")
+    state = agent.ask("سؤال")
     assert state["attempts"] == 1
     assert state["bad_citations"] == set()
     assert "999" not in state["answer"]
@@ -105,7 +105,7 @@ def test_persistent_fabrication_surfaces(monkeypatch):
     )
     fabricated = AIMessage(content="نص المادة 999 واضح.")
     scripted(monkeypatch, [tool_call, fabricated] + [fabricated] * 2, tools=[retrieve_civil_law])
-    state = graph.ask("سؤال")
+    state = agent.ask("سؤال")
     assert state["bad_citations"] == {"999"}
     assert "999" in state["answer"]
 
@@ -115,7 +115,7 @@ def test_web_only_answer_skips_gate(monkeypatch):
         monkeypatch,
         [AIMessage(content="وفقا للمادة 318 من قانون العقوبات تُعاقب السرقة بالحبس.")],
     )
-    state = graph.ask("ما عقوبة السرقة؟")
+    state = agent.ask("ما عقوبة السرقة؟")
     assert state["bad_citations"] == set()
     assert state["attempts"] == 0
 
@@ -132,12 +132,12 @@ def _tool_call(i: int) -> AIMessage:
 def test_tool_round_cap_forces_final_answer(monkeypatch):
     scripted(
         monkeypatch,
-        [_tool_call(i) for i in range(graph.MAX_TOOL_ROUNDS + 1)]
+        [_tool_call(i) for i in range(agent.MAX_TOOL_ROUNDS + 1)]
         + [AIMessage(content="إجابة نهائية دون استشهاد.")],
         tools=[retrieve_civil_law],
     )
-    state = graph.ask("سؤال يغري بالبحث المتكرر")
-    assert state["tool_rounds"] == graph.MAX_TOOL_ROUNDS
+    state = agent.ask("سؤال يغري بالبحث المتكرر")
+    assert state["tool_rounds"] == agent.MAX_TOOL_ROUNDS
     assert state["answer"] == "إجابة نهائية دون استشهاد."
 
 
@@ -147,11 +147,11 @@ def test_malformed_tool_call_retried(monkeypatch):
         [AIMessage(content="الإجابة بعد إعادة المحاولة.")],
         errors=[ValueError("tool call validation failed: missing properties: 'query'")],
     )
-    state = graph.ask("سؤال")
+    state = agent.ask("سؤال")
     assert state["answer"] == "الإجابة بعد إعادة المحاولة."
 
 
 def test_non_tool_error_propagates(monkeypatch):
     scripted(monkeypatch, [], errors=[RuntimeError("invalid api key")])
     with pytest.raises(RuntimeError, match="invalid api key"):
-        graph.ask("سؤال")
+        agent.ask("سؤال")
