@@ -107,12 +107,14 @@ def summarize(rows: list[dict]) -> None:
             line += f" citation_hit={sum(r['citation_hit'] for r in hits)/len(hits):.0%} (n={len(hits)})"
         print(line)
 
-    behavior = [behavior_check(r, corpus) for r in ok]
-    passed = [v for v in behavior if v == "pass"]
-    print(f"\nhonest behavior (rows without expected): {len(passed)}/{len(behavior)}")
-    for v, n in Counter(behavior).most_common():
-        if v != "pass":
-            print(f"  {v} x{n}")
+    behavior_rows = [r for r in ok if not r.get("expected")]
+    checks = [behavior_check(r, corpus) for r in behavior_rows]
+    if checks:
+        print(f"\nhonest behavior: {checks.count('pass')}/{len(checks)} behavior-only rows")
+        for v, n in Counter(checks).most_common():
+            if v != "pass":
+                print(f"  {v} x{n}")
+    by_bucket = Counter(r["bucket"] for r in ok)
     print("buckets:", dict(by_bucket))
     if failed:
         print("\nfailed items:")
