@@ -55,8 +55,11 @@ def evaluate(name: str, records: list[dict], golden: list[dict], k: int) -> dict
             build_chroma(records, embedder)
             index_secs = time.perf_counter() - t0
 
-            latencies, hits_at_k, rr = [], 0, 0.0
+            latencies, hits_at_k, rr, scored = [], 0, 0.0, 0
             for item in golden:
+                if not item.get("expected"):  # behavior/web/trap items aren't retrieval-scored
+                    continue
+                scored += 1
                 t0 = time.perf_counter()
                 nums = [h.article_number for h in retrieval.hybrid_search(item["question"], k=k)]
                 latencies.append(time.perf_counter() - t0)
@@ -74,7 +77,7 @@ def evaluate(name: str, records: list[dict], golden: list[dict], k: int) -> dict
     except Exception:
         pass
 
-    n = len(golden)
+    n = scored
     return {
         "embedder": name,
         "dim": embedder.dim,

@@ -11,17 +11,13 @@ BM25_PATH = PROJECT_ROOT / "indices" / "bm25.pkl"
 
 COLLECTION_NAME = "civil_code_1948"
 
-# Active embedder, overridable via env or --embedder flag on ingest.
-# Swap only together with a re-ingest: query vectors must come from the
-# same model that built the index (guarded in embeddings.get_embedder_for_collection).
+
 EMBEDDER = os.getenv("LEGALAI_EMBEDDER", "qwen3-0.6b")
-# Embedding compute device + encode batch. fp16 GPU fits <4GB cards.
+
+
+
+# note for later eb2a add interval between gemini calls, to avoid rate limit errors
 DEVICE = os.getenv("LEGALAI_DEVICE", "cuda")
 BATCH_SIZE = int(os.getenv("LEGALAI_BATCH", "16"))
-# Gemini embedding throttle: min seconds between API calls (free-tier RPM guard).
 GEMINI_MIN_INTERVAL = float(os.getenv("LEGALAI_GEMINI_INTERVAL", "0.2"))
-
-# Chat model: "provider:model". Gemini 3.5 Flash-Lite is active; it needs the
-# tool-round cap + malformed-call retry in graph.py. groq:qwen/qwen3.8-27b is
-# the verified fallback: LEGALAI_LLM=groq:qwen/qwen3.8-27b
 LLM = os.getenv("LEGALAI_LLM", "gemini:gemini-3.5-flash-lite")

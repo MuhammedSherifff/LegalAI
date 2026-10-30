@@ -44,7 +44,7 @@ def _tool_fn(fn):
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except Exception as e:  # noqa: BLE001 — the message IS the result
+        except Exception as e: 
             return _format({"error": f"{type(e).__name__}: {e}"})
     return wrapper
 
@@ -113,5 +113,4 @@ def _tavily_search(query: str) -> list[dict]:
 
 ALL_TOOLS = [retrieve_civil_law, get_article_by_number, web_search]
 
-# Exa swap hole: replace _tavily_search with an _exa_search returning the same
-# result-shaped dicts once needed. (decided v1: Tavily only)
+# Exa try for later i guess

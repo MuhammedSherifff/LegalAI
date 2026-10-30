@@ -1,23 +1,479 @@
 {
-  "version": 1,
-  "notes": "expected = article numbers whose text actually answers the question, verified against data/civil_law_records.json (civ_1948). Article numbers are strings.",
+  "version": 2,
+  "notes": "expected = article numbers whose text actually answers the question (verified against data/civil_law_records.json, civ_1948). Empty expected + behavior = graded on behavior, not retrieval (traps/web). verified=false = candidate pending human check.",
   "items": [
-    {"question": "ما هو التعويض عن الفعل الضار؟", "expected": ["163"]},
-    {"question": "هل يجوز نقض العقد أو تعديله؟", "expected": ["147"]},
-    {"question": "ما معنى تنفيذ العقد وفقا لما يوجبه حسن النية؟", "expected": ["148"]},
-    {"question": "ما حكم الشروط التعسفية في عقود الإذعان؟", "expected": ["149"]},
-    {"question": "هل يجوز الانحراف عن عبارات العقد الواضحة؟", "expected": ["150"]},
-    {"question": "كيف يفسر الشك في العقد؟", "expected": ["151"]},
-    {"question": "ما هي مدة التقادم المسقط العادي؟", "expected": ["374"]},
-    {"question": "ما الحقوق التي تتقادم بخمس سنوات؟", "expected": ["375"]},
-    {"question": "ما هو عقد البيع؟", "expected": ["418"]},
-    {"question": "متى تنتقل الملكية بالعقد؟", "expected": ["932"]},
-    {"question": "كيف ينعقد العقد؟", "expected": ["89"]},
-    {"question": "ما هو الغلط الجوهري الذي يبطل العقد؟", "expected": ["120", "121"]},
-    {"question": "ما هو عقد الإيجار؟", "expected": ["558"]},
-    {"question": "هل يجوز تحديد التعويض مقدما في العقد؟", "expected": ["223"]},
-    {"question": "ما حكم الفوائد عند تأخر المدين في دفع مبلغ من النقود؟", "expected": ["226"]},
-    {"question": "هل يجوز الاتفاق على إعفاء المدين من المسؤولية؟", "expected": ["217"]},
-    {"question": "ما حكم انتقال ملكية العين المؤجرة إلى شخص آخر؟", "expected": ["604"]}
+    {
+      "question": "ما هو التعويض عن الفعل الضار؟",
+      "expected": [
+        "163"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "هل يجوز نقض العقد أو تعديله؟",
+      "expected": [
+        "147"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما معنى تنفيذ العقد وفقا لما يوجبه حسن النية؟",
+      "expected": [
+        "148"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما حكم الشروط التعسفية في عقود الإذعان؟",
+      "expected": [
+        "149"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "هل يجوز الانحراف عن عبارات العقد الواضحة؟",
+      "expected": [
+        "150"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "كيف يفسر الشك في العقد؟",
+      "expected": [
+        "151"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما هي مدة التقادم المسقط العادي؟",
+      "expected": [
+        "374"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما الحقوق التي تتقادم بخمس سنوات؟",
+      "expected": [
+        "375"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما هو عقد البيع؟",
+      "expected": [
+        "418"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "متى تنتقل الملكية بالعقد؟",
+      "expected": [
+        "932"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "كيف ينعقد العقد؟",
+      "expected": [
+        "89"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما هو الغلط الجوهري الذي يبطل العقد؟",
+      "expected": [
+        "120",
+        "121"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما هو عقد الإيجار؟",
+      "expected": [
+        "558"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "هل يجوز تحديد التعويض مقدما في العقد؟",
+      "expected": [
+        "223"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما حكم الفوائد عند تأخر المدين في دفع مبلغ من النقود؟",
+      "expected": [
+        "226"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "هل يجوز الاتفاق على إعفاء المدين من المسؤولية؟",
+      "expected": [
+        "217"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما حكم انتقال ملكية العين المؤجرة إلى شخص آخر؟",
+      "expected": [
+        "604"
+      ],
+      "bucket": "A",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 163؟",
+      "expected": [
+        "163"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 147؟",
+      "expected": [
+        "147"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "أريد نص المادة ١٦٣ بالأرقام الهندية",
+      "expected": [
+        "163"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 434؟",
+      "expected": [
+        "434"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 12 من القانون المدني المصري؟",
+      "expected": [
+        "12"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 8000؟",
+      "expected": [],
+      "behavior": "ترفض بأمانة: لا توجد مادة بهذا الرقم",
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادتين 147 و148؟",
+      "expected": [
+        "147",
+        "148"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 87 من القانون المدني المصري؟",
+      "expected": [
+        "87"
+      ],
+      "bucket": "B",
+      "verified": true
+    },
+    {
+      "question": "التعويض الاتفاقي المتفق عليه سلفا عند الإخلال بالعقد",
+      "expected": [
+        "223",
+        "224"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "طلب فسخ العقد بسبب الظروف الطارئة",
+      "expected": [
+        "147"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "دعوى الإثراء بلا سبب",
+      "expected": [
+        "180"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "المسؤولية الطبية عن الخطأ في العلاج",
+      "expected": [
+        "163",
+        "164"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "انتقال الحقوق إلى الورثة",
+      "expected": [
+        "899"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "نظرية الغبن الفاحش في البيع",
+      "expected": [
+        "425",
+        "426"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "الوفاء بمقابل في العقود الملزمة للجانبين",
+      "expected": [
+        "159",
+        "161"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "اكتساب الملكية بالتقادم",
+      "expected": [
+        "969"
+      ],
+      "bucket": "C",
+      "verified": false
+    },
+    {
+      "question": "حقوق المشتري عند عيب المبيع",
+      "expected": [
+        "447",
+        "449"
+      ],
+      "bucket": "D",
+      "verified": false
+    },
+    {
+      "question": "أطراف عقد المقاولة والتزامات المقاول",
+      "expected": [
+        "646"
+      ],
+      "bucket": "D",
+      "verified": false
+    },
+    {
+      "question": "متى يتحمل المتبوع أفعال تابعه؟",
+      "expected": [
+        "174"
+      ],
+      "bucket": "D",
+      "verified": true
+    },
+    {
+      "question": "متى تنتهي علاقة العمل في العقود المسماة؟",
+      "expected": [
+        "675",
+        "696",
+        "698"
+      ],
+      "bucket": "D",
+      "verified": true
+    },
+    {
+      "question": "ضمانات المشتري مقابل البائع",
+      "expected": [
+        "434",
+        "445",
+        "455"
+      ],
+      "bucket": "D",
+      "verified": true
+    },
+    {
+      "question": "أحكام الرهن الرسمي",
+      "expected": [
+        "1098",
+        "1120"
+      ],
+      "bucket": "D",
+      "verified": true
+    },
+    {
+      "question": "شروط صحة العقد العامة: الرضا والمحل والسبب",
+      "expected": [
+        "89",
+        "137"
+      ],
+      "bucket": "D",
+      "verified": false
+    },
+    {
+      "question": "ما نص المادة 87 من قانون العمل؟",
+      "expected": [],
+      "behavior": "يبحث ويب أو يوضح أنها من قانون العمل لا المدني؛ لا يقدم نصاً مدنياً على أنه عمل",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما هي مادة 12 من قانون العمل؟",
+      "expected": [],
+      "behavior": "يبحث ويب أو يوضح اختلاف القانون؛ لا يستشهد بمادة 12 المدنية كأنها عمل",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "في حالة طردي من العمل من دون سبب ما هي حقوقي؟",
+      "expected": [],
+      "behavior": "يوضح أن المسألة من قانون العمل؛ يجوز الاستعانة بنصوص عقد العمل المدنية مع توسيمها، و/أو ويب",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما عقوبة سرقة الموبايل في القانون الجزائي؟",
+      "expected": [],
+      "behavior": "القانون الجنائي: ويب أو رفض مهذب؛ لا اختلاق مدني",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "كيف أسجل زواج عرفي في مصر؟",
+      "expected": [],
+      "behavior": "إجراءات/أحوال شخصية: ويب أو توضيح خارج النطاق",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما تعريف البريد الإلكتروني في قانون التجارة؟",
+      "expected": [],
+      "behavior": "قانون تجاري: ويب أو توضيح خارج النطاق",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما هو قانون المرور رقم 100؟",
+      "expected": [],
+      "behavior": "خارج الفهرس: ويب أو توضيح",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما نص المادة 65 من قانون الأحوال الشخصية؟",
+      "expected": [],
+      "behavior": "أحوال شخصية: ويب أو توضيح؛ لا مادة 65 مدنية",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما أحكام قانون الإثارة؟",
+      "expected": [],
+      "behavior": "قانون غير موجود باسم ذلك: يستوضح ولا يختلق",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "ما هي حقيقة الضرائب؟",
+      "expected": [],
+      "behavior": "سؤال مبهم: يستوضح النطاق بدل التخمين",
+      "bucket": "E",
+      "verified": true
+    },
+    {
+      "question": "آخر تعديل قانون القوى العاملة المصري؟",
+      "expected": [],
+      "behavior": "ويب مع مصادر",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "هل يجوز زواج دون بلوغ من القانون المدني؟",
+      "expected": [],
+      "behavior": "مدني + أحوال شخصية: مزيج مع توسيم المصادر",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "أحدث قرارات المحكمة الدستورية العليا بخصوص القوانين؟",
+      "expected": [],
+      "behavior": "ويب مع مصادر",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "ما الفرق بين الشفعة والشيخوخة؟",
+      "expected": [],
+      "behavior": "داخلي مدني أو توضيح؛ استشهاد مدني فقط إن وجد",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "ما أحكام الإعفاء من الضرائب في مصر؟",
+      "expected": [],
+      "behavior": "ويب مع مصادر ضريبية",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "هل حق الشفعة محفوظ في عقد البيع المصري؟",
+      "expected": [
+        "936"
+      ],
+      "bucket": "F",
+      "verified": false
+    },
+    {
+      "question": "هل الفصل التعسفي مشروع في القانون المصري؟",
+      "expected": [],
+      "behavior": "قانون العمل: ويب + نصوص عقد العمل المدنية موسومة",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "ما شروط إقامة الأجنبي في مصر؟",
+      "expected": [],
+      "behavior": "ويب مع مصادر",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "ما حكم التأمينات الاجتماعية للعامل؟",
+      "expected": [],
+      "behavior": "ويب/مزيج مع توسيم المصادر",
+      "bucket": "F",
+      "verified": true
+    },
+    {
+      "question": "ما آخر تعديلات قانون الطوائف؟",
+      "expected": [],
+      "behavior": "ويب مع مصادر",
+      "bucket": "F",
+      "verified": true
+    }
   ]
 }

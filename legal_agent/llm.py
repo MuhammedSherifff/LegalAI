@@ -1,10 +1,6 @@
 """One chat-model constructor, every free provider behind a single prefix.
 
-Format: "provider:model" — chosen because model ids themselves contain '/'.
-Default groq:qwen/qwen3.8-27b is the only chat model that passed the full
-tool-calling probe (2026-10-17): correct tool pick, no spurious calls,
-exactly one graph roundtrip. Gemini 3.5 Flash-Lite passed tool selection
-but loops in the graph — reserve it for roles that make one call.
+Format: "provider:model"
 """
 
 from __future__ import annotations

@@ -46,7 +46,7 @@ def agent(state: State) -> dict:
     for attempt in range(MAX_TOOL_CALL_RETRIES + 1):
         try:
             return {"messages": [llm.invoke(messages)]}
-        except Exception as e:  # noqa: BLE001 — checked below before retrying
+        except Exception as e:  
             if "tool" not in str(e).lower() or attempt == MAX_TOOL_CALL_RETRIES:
                 raise
             messages.append(HumanMessage(nodes.tool_call_correction()))
@@ -72,7 +72,7 @@ def call_tools(state: State) -> dict:
         else:
             try:
                 content = tool.invoke(call["args"])
-            except Exception as e:  # noqa: BLE001 — the message IS the result
+            except Exception as e:  
                 content = json.dumps({"error": f"{type(e).__name__}: {e}"}, ensure_ascii=False)
         messages.append(ToolMessage(content=content, tool_call_id=call["id"]))
         evidence.extend(_evidence_from(call["name"], content))

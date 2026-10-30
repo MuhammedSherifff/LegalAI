@@ -1,5 +1,4 @@
 """Embedder abstraction: one interface, swappable implementations.
-
 Ingest embeds passages; retrieval embeds the query. Each embedder hides its
 own quirks (e.g. e5 task prefixes, Gemini taskType) so callers never see them.
 """
@@ -10,14 +9,12 @@ import functools
 import json
 import time
 import urllib.request
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from . import config
 
-if TYPE_CHECKING:
-    from sentence_transformers import SentenceTransformer
+
+from sentence_transformers import SentenceTransformer
 
 
 class BaseEmbedder:
@@ -31,7 +28,6 @@ class BaseEmbedder:
 
     def _st(self) -> SentenceTransformer:
         if self._model is None:
-            from sentence_transformers import SentenceTransformer
 
             device = config.DEVICE
             if device.startswith("cuda"):
@@ -55,7 +51,7 @@ class BaseEmbedder:
             texts,
             batch_size=config.BATCH_SIZE,
             normalize_embeddings=True,
-            show_progress_bar=False,
+            show_progress_bar=True,
         )
 
     def embed_passages(self, texts: list[str]) -> np.ndarray:
@@ -81,7 +77,7 @@ class E5Embedder(BaseEmbedder):
 
 
 class Bgem3Embedder(BaseEmbedder):
-    """BAAI/bge-m3. No prefixes needed; heavier (~2GB) and slower on CPU."""
+    """BAAI/bge-m3. No prefixes needed"""
 
     name = "bgem3"
     model_id = "BAAI/bge-m3"
@@ -117,10 +113,7 @@ class Qwen3Embedder(BaseEmbedder):
 class GeminiEmbedder(BaseEmbedder):
     """google/gemini-embedding-2 via REST (validated shapes, zero deps).
 
-    Query/passage are separated server-side by taskType, not by a prefix.
-    embedding-2 aggregates a multi-input request into one vector, so you
-    cannot batch: passage embedding = one request per article. Throttle
-    knob keeps free-tier RPM in limits. Quality is the highest here
+    Query/passage are separated server-side by taskType Quality is the highest here
     (~MTEB multilingual 69.9), tradeoff is network + quota."""
 
     name = "gemini-2"
@@ -191,7 +184,7 @@ def get_embedder(name: str | None = None) -> BaseEmbedder:
 
 
 def available_embedders() -> list[str]:
-    return sorted(_EMBEDDERS)
+    return _EMBEDDERS
 
 
 def get_embedder_for_collection(collection) -> BaseEmbedder:

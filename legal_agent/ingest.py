@@ -26,7 +26,7 @@ _TOKEN_RE = re.compile(r"[\u0600-\u06FF]+|[0-9]+")
 
 def tokenize(text: str) -> list[str]:
     """Arabic word + digit tokens. Arabic-Indic digits become ASCII so
-    '١٦٣' and '163' match either way. Shared by ingest and query side."""
+    ' any number swa2 arabic aw english normalized to ascii digits."""
     return _TOKEN_RE.findall(text.translate(AR_DIGITS))
 
 
@@ -152,3 +152,4 @@ if __name__ == "__main__":
         main()
     except FileNotFoundError:
         sys.exit(f"data file not found: {config.DATA_PATH}")
+
