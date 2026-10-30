@@ -34,6 +34,7 @@ class State(TypedDict, total=False):
     question: str
     messages: Annotated[list, operator.add]
     evidence: Annotated[list[dict], operator.add]
+    web_results: Annotated[list[dict], operator.add]
     attempts: int
     tool_rounds: int
     answer: str
@@ -64,7 +65,7 @@ def _evidence_from(tool_name: str, content: str) -> list[dict]:
 
 def call_tools(state: State) -> dict:
     by_name = {t.name: t for t in ALL_TOOLS}
-    messages, evidence = [], []
+    messages, evidence, web = [], [], []
     for call in state["messages"][-1].tool_calls:
         tool = by_name.get(call["name"])
         if tool is None:
@@ -76,8 +77,16 @@ def call_tools(state: State) -> dict:
                 content = json.dumps({"error": f"{type(e).__name__}: {e}"}, ensure_ascii=False)
         messages.append(ToolMessage(content=content, tool_call_id=call["id"]))
         evidence.extend(_evidence_from(call["name"], content))
-    return {"messages": messages, "evidence": evidence,
-            "tool_rounds": state.get("tool_rounds", 0) + 1}
+        if call["name"] == "web_search":
+            try:
+                web.extend(json.loads(content).get("results", []))
+            except ValueError:
+                pass
+    out = {"messages": messages, "evidence": evidence,
+           "tool_rounds": state.get("tool_rounds", 0) + 1}
+    if web:
+        out["web_results"] = web
+    return out
 
 
 def finalize(state: State) -> dict:
@@ -151,6 +160,7 @@ def ask(question: str, history: list[dict] | None = None) -> State:
             "question": question,
             "messages": [SystemMessage(prompts.SYSTEM), *prefix, HumanMessage(question)],
             "evidence": [],
+            "web_results": [],
             "attempts": 0,
             "tool_rounds": 0,
         },

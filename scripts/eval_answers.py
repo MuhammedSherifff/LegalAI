@@ -70,6 +70,7 @@ def run_one(idx: int, item: dict) -> dict:
         "citation_hit": bool(set(expected) & set(cited)) if expected else None,
         "bad_citations": sorted(state.get("bad_citations") or []),
         "tools": tools,
+        "web_results": state.get("web_results", []),
         "web_used": "web_search" in tools,
         "tool_rounds": state.get("tool_rounds"),
         "attempts": state.get("attempts"),

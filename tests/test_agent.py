@@ -155,3 +155,30 @@ def test_non_tool_error_propagates(monkeypatch):
     scripted(monkeypatch, [], errors=[RuntimeError("invalid api key")])
     with pytest.raises(RuntimeError, match="invalid api key"):
         agent.ask("سؤال")
+
+
+@tool
+def web_search(query: str) -> str:
+    """Stub web search."""
+    return json.dumps(
+        {"results": [{"title": "قانون العمل", "url": "https://x.eg", "content": "نص المادة"}]},
+        ensure_ascii=False,
+    )
+
+
+def test_web_results_captured_not_evidence(monkeypatch):
+    scripted(
+        monkeypatch,
+        [
+            AIMessage(
+                content="",
+                tool_calls=[{"name": "web_search", "args": {"query": "قانون العمل"}, "id": "c1"}],
+            ),
+            AIMessage(content="بحسب بحث الويب، جواب السؤال كذا."),
+        ],
+        tools=[web_search],
+    )
+    state = agent.ask("ما قاعدة قانون العمل؟")
+    assert state["evidence"] == []  # web results are not citation evidence
+    assert state["web_results"][0]["title"] == "قانون العمل"
+    assert state["bad_citations"] == set()
