@@ -23,7 +23,8 @@ from langchain_core.messages import AIMessage
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from legal_agent import citations, config, agent 
+from legal_agent import citations, config, agent
+from legal_agent.behavior import behavior_check, corpus_numbers
 
 
 def load_items(path: str) -> list[dict]:
@@ -81,6 +82,7 @@ def run_one(idx: int, item: dict) -> dict:
 
 
 def summarize(rows: list[dict]) -> None:
+    corpus = corpus_numbers()
     ok = [r for r in rows if not r["error"]]
     failed = [r for r in rows if r["error"]]
     print(f"\n=== {len(rows)} questions, {len(ok)} ok, {len(failed)} failed ===")
@@ -105,7 +107,12 @@ def summarize(rows: list[dict]) -> None:
             line += f" citation_hit={sum(r['citation_hit'] for r in hits)/len(hits):.0%} (n={len(hits)})"
         print(line)
 
-    by_bucket = Counter(r["bucket"] for r in ok)
+    behavior = [behavior_check(r, corpus) for r in ok]
+    passed = [v for v in behavior if v == "pass"]
+    print(f"\nhonest behavior (rows without expected): {len(passed)}/{len(behavior)}")
+    for v, n in Counter(behavior).most_common():
+        if v != "pass":
+            print(f"  {v} x{n}")
     print("buckets:", dict(by_bucket))
     if failed:
         print("\nfailed items:")
