@@ -11,12 +11,20 @@ trusting the LLM.
 
 ## What it does
 
-```
-سؤال ──► LangGraph agent ⇄ tools (≤4 rounds) ──► citation gate ──► retry/answer
-           │
-           ├─ retrieve_civil_law      hybrid search (dense + BM25, RRF)
-           ├─ get_article_by_number   exact lookup (repealed-aware, Arabic-Indic digits)
-           └─ web_search              Tavily, for out-of-corpus law fields
+```mermaid
+flowchart TD
+    Q(["User question"]) --> A["Agent<br/>Gemini 3.5 Flash-Lite"]
+    A -->|"tool calls · ≤ 4 rounds"| T["Tools"]
+    T --> S1["retrieve_civil_law<br/>hybrid · dense + BM25 + RRF"]
+    T --> S2["get_article_by_number<br/>exact lookup · repealed-aware<br/>Arabic-Indic digits"]
+    T --> S3["web_search<br/>out-of-corpus scope · Tavily"]
+    T -->|"evidence + results"| A
+    A -->|"draft answer"| G{{"Citation gate<br/>(deterministic code)"}}
+    G -->|"fabricated citation · retry once"| A
+    G -->|"citation persists"| W(["Answer + ⚠ unverified-citation warning"])
+    G -->|"verified"| V(["Answer + verified sources<br/>article · status · page"])
+    T -.->|"round cap reached"| F["finalize<br/>one forced no-tools answer"]
+    F --> G
 ```
 
 - **Agentic loop** — the model decides which tools to call, rephrases and re-searches
