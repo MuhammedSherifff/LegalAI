@@ -153,12 +153,6 @@ tests/           29 tests, agent mocked — no LLM needed to run the suite
   planned as a node, shipped as a prompt rule, and the hybrid/semantic comparison
   dataset is what justified keeping RRF.
 
-## Roadmap
-
-- [ ] Streaming responses (SSE)
-- [ ] Cross-provider judge (remove the same-model caveat)
-- [ ] Docker + deployment guide
-- [ ] Reranker on the hybrid top-k (`bge-reranker` already in HF cache)
 
 ## License
 
