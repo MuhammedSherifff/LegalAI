@@ -83,3 +83,10 @@ Working agentic RAG (P1–P4 done):
    trap honesty); 516-run baselines already logged.
 
 
+
+## Reproducibility receipts (Oct 2026)
+
+- Retrieval bake-off (hybrid/semantic/sparse on golden set) reproduced exactly on
+  an independent rerun: 0.85/0.66, 0.70/0.58, 0.57/0.47 both times.
+- Push prep: single root README (module READMEs folded in), MIT license, CI via
+  GitHub Actions running the 29-test suite (HF model cached on first run).
