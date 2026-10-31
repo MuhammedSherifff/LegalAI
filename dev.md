@@ -90,3 +90,11 @@ Working agentic RAG (P1–P4 done):
   an independent rerun: 0.85/0.66, 0.70/0.58, 0.57/0.47 both times.
 - Push prep: single root README (module READMEs folded in), MIT license, CI via
   GitHub Actions running the 29-test suite (HF model cached on first run).
+
+### Query-time correction (Oct 31)
+
+The first bake-off reported vector-only at ~167 ms vs hybrid ~37 ms — a
+cold-start artifact: the first vector query of a fresh process pays a ~6 s
+one-time cost (Chroma collection load + embedder warmup), dragging the 40-query
+mean to ~187 ms. Warm medians: vector ~35 ms, hybrid ~37 ms, sparse ~1.4 ms.
+Hybrid's true cost is vector + ~2 ms. "4.5× faster" was wrong; README fixed.

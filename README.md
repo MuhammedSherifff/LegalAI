@@ -53,15 +53,17 @@ the retrieval metrics; agent metrics run the real graph end-to-end.
 
 ### Retrieval (40 hand-built golden questions, one shared index per embedder)
 
-| Search mode | Recall@5 | MRR | Query time |
+| Search mode | Recall@5 | MRR | Steady-state query time |
 |---|---|---|---|
-| BM25 only (sparse) | 0.57 | 0.47 | 2 ms |
-| Dense only (vector) | 0.70 | 0.58 | 167 ms |
-| **Hybrid (RRF)** | **0.85** | **0.66** | **37 ms** |
+| BM25 only (sparse) | 0.57 | 0.47 | ~1.4 ms |
+| Dense only (vector) | 0.70 | 0.58 | ~35 ms |
+| **Hybrid (RRF)** | **0.85** | **0.66** | **~37 ms** |
 
-Hybrid beats semantic-only by **21% relative recall@5** while being 4.5× faster,
-and BM25-only shows why fusion matters (dense alone misses nothing but exact
-legalese; sparse alone misses paraphrases).
+Hybrid beats semantic-only by **21% relative recall@5** at nearly the same cost
+(one embedding + a 1.4 ms BM25 pass + microsecond-scale fusion), and BM25-only
+shows why fusion matters (dense alone is best at paraphrases; sparse alone at
+exact legalese). Query times are warm medians over 40 queries — the first query
+of a fresh process pays a ~6 s one-time cost (index load + model warmup).
 
 ### Agent, end-to-end (60 golden + 224 external answers = 284 evaluated)
 
