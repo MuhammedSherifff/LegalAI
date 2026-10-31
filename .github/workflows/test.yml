@@ -13,5 +13,5 @@ jobs:
         with:
           path: ~/.cache/huggingface
           key: hf-models-${{ runner.os }}
-      - run: pip install -e .
+      - run: pip install -e ".[dev]"
       - run: python -m pytest -q
